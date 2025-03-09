@@ -1,6 +1,6 @@
 [package]
 name = "cargo-self-version"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 authors = ["Ramon Moraes <ramonmoraes.foss@gmail.com>"]
 description = "retrieves current version from a Cargo.toml."
