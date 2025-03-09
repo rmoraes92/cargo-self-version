@@ -55,7 +55,7 @@ jobs:
       - name: Ubuntu - Install Dependencies - musl
         if: matrix.rust_target == 'x86_64-unknown-linux-musl'
         run: |
-          sudo apt-get install -y musl-tools libssl-dev pkg-config perl gcc
+          sudo apt-get install -y musl-tools
 
       - name: Rustup - Install Dependencies - musl
         if: matrix.rust_target == 'x86_64-unknown-linux-musl'
@@ -98,7 +98,7 @@ jobs:
           PKG_VER: ${{ steps.capture_version_from_cargo.outputs.pkg_ver }}
         run: |
           gh release create \
-            --title v$PKG_VER --notes-file RELEASE.md $PKG_VER
+            --title v$PKG_VER $PKG_VER
   github_release_upload:
     needs: github_release_create
     name: Github Release - Upload Artifacts
