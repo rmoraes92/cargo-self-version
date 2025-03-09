@@ -7,9 +7,15 @@ use cfo::read_file;
 use clap::Parser;
 use toml::Table;
 
+#[derive(Parser)]
+#[command(version, about, long_about = None, name = "cargo", bin_name = "cargo")]
+enum CargoWrapper {
+    SelfVersion(Args),
+}
+
 /// retrieves current version from a given Cargo.toml file
 #[derive(Parser, Debug)]
-#[command(version, about, long_about = None)]
+#[command(version, about, long_about = None, name = "self-version", bin_name = "self-version")]
 struct Args {
     /// path to either the Cargo.toml file or the folder where it is located.
     /// (if empty it will use current path to find a Cargo.toml)
@@ -18,7 +24,9 @@ struct Args {
 }
 
 fn main() {
-    let args = Args::parse();
+    let args = match CargoWrapper::parse() {
+        CargoWrapper::SelfVersion(a) => a,
+    };
 
     let path = match args.cargo_toml_path {
         Some(p) => {
