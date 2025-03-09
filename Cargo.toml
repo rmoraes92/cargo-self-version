@@ -8,6 +8,9 @@ license = "MIT"
 documentation = "https://docs.rs/cargo-self-version/latest/cargo-self-version/"
 homepage = "https://github.com/rmoraes92/cargo-self-version"
 
+[[bin]]
+name = "cargo-self-version"
+
 [dependencies]
 cfo = "0.1.0"
 clap = { version = "4.5.31", features = ["derive"] }
