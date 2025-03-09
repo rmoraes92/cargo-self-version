@@ -89,7 +89,7 @@ jobs:
       - id: capture_version_from_cargo
         name: Capture Version from Cargo.toml
         run: |
-          ver=$(cargo run --)
+          ver=$(cargo run -- self-version)
           echo "pkg_ver=$ver" >> "$GITHUB_OUTPUT"
 
       - name: Create Github Release
