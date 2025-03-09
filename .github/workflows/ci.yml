@@ -1,0 +1,135 @@
+name: Rust
+
+on:
+  push:
+    branches: ["release/*"]
+
+env:
+  CARGO_TERM_COLOR: always
+  CRATE_NAME: cargo-self-version
+
+jobs:
+  test:
+    name: Running Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+      - name: Run tests
+        run: cargo test
+  publish_cratesio:
+    needs: test
+    name: Publish to crates.io
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+      - name: Install Extra Cargo Crates
+        run: cargo install cargo-caw-publish
+      - name: Publish to crates.io
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        run: cargo caw-publish
+  cargo_build:
+    needs: test
+    name: Cargo - Building Artifacts
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        build:
+          - linux gnu x86_64
+          - linux musl x64
+        include:
+          - build: linux musl x64
+            os: ubuntu-latest
+            rust: stable
+            rust_target: x86_64-unknown-linux-musl
+          - build: linux gnu x86_64
+            os: ubuntu-latest
+            rust: stable
+            rust_target: x86_64-unknown-linux-gnu
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Ubuntu - Install Dependencies - musl
+        if: matrix.rust_target == 'x86_64-unknown-linux-musl'
+        run: |
+          sudo apt-get install -y musl-tools libssl-dev pkg-config perl gcc
+
+      - name: Rustup - Install Dependencies - musl
+        if: matrix.rust_target == 'x86_64-unknown-linux-musl'
+        run: |
+          rustup target add x86_64-unknown-linux-musl
+
+      - name: Build
+        run: cargo build -r --target ${{ matrix.rust_target }}
+
+      - name: Adjust Target Name
+        run: |
+          cp \
+            target/${{ matrix.rust_target }}/release/$CRATE_NAME \
+            target/${{ matrix.rust_target }}/release/$CRATE_NAME-${{ matrix.rust_target }}
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.rust_target }}
+          path: target/${{ matrix.rust_target }}/release/$CRATE_NAME-${{ matrix.rust_target }}
+  github_release_create:
+    needs: cargo_build
+    name: Github Release - Creating Release
+    runs-on: ubuntu-latest
+    outputs:
+      pkg_ver: ${{ steps.capture_version_from_cargo.outputs.pkg_ver }}
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - id: capture_version_from_cargo
+        name: Capture Version from Cargo.toml
+        run: |
+          ver=$(cargo run --)
+          echo "pkg_ver=$ver" >> "$GITHUB_OUTPUT"
+
+      - name: Create Github Release
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          PKG_VER: ${{ steps.capture_version_from_cargo.outputs.pkg_ver }}
+        run: |
+          gh release create \
+            --title v$PKG_VER --notes-file RELEASE.md $PKG_VER
+  github_release_upload:
+    needs: github_release_create
+    name: Github Release - Upload Artifacts
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        build:
+          - linux gnu x86_64
+          - linux musl x64
+        include:
+          - build: linux musl x64
+            os: ubuntu-latest
+            rust: stable
+            rust_target: x86_64-unknown-linux-musl
+          - build: linux gnu x86_64
+            os: ubuntu-latest
+            rust: stable
+            rust_target: x86_64-unknown-linux-gnu
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        name: Downloading Target
+        with:
+          name: ${{ matrix.rust_target }}
+
+      - name: Publish to Github Releases
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          PKG_VER: ${{ needs.github_release_create.outputs.pkg_ver }}
+        run: |
+          gh release upload $PKG_VER \
+            $CRATE_NAME-${{ matrix.rust_target }}

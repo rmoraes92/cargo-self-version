@@ -1,0 +1,9 @@
+[package]
+name = "cargo-self-version"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+cfo = "0.1.0"
+clap = { version = "4.5.31", features = ["derive"] }
+toml = "0.8.20"
