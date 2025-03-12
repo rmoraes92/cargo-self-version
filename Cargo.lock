@@ -54,7 +54,7 @@ dependencies = [
 
 [[package]]
 name = "cargo-self-version"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "cfo",
  "clap",
