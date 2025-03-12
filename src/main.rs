@@ -1,3 +1,33 @@
+///! # cargo self-version
+///!
+///! retrieves current version from a Cargo.toml
+///!
+///!
+///! ## Install
+///!
+///! `$ cargo install cargo-self-version`
+///!
+///!
+///! ## Usage
+///!
+///! ```
+///! $ cargo self-version
+///! x.y.z
+///! ```
+///!
+///!
+///! ## Examples
+///!
+///! ```bash
+///! # store current Cargo.toml version in a variable
+///! pkg_ver=$(cargo self-version)
+///!
+///! # maybe create a git tag
+///! git tag $pkg_ver
+///!
+///! # or create a release with github cli
+///! gh release create --title v$pkg_ver $pkg_ver
+///! ```
 use std::{
     path::{Path, PathBuf},
     process::exit,
