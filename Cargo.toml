@@ -13,5 +13,5 @@ name = "cargo-self-version"
 
 [dependencies]
 cfo = "0.1.0"
-clap = { version = "4.5.31", features = ["derive"] }
+clap = { version = "4.5.32", features = ["derive"] }
 toml = "0.8.20"
